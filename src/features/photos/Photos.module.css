@@ -1,0 +1,20 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imagesContainer{
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin: 14px;
+}
+
+.imageElmtContainer{
+  padding: 14px;
+}
+
+.contentCenter{
+  justify-content: center !important;
+}
