@@ -1,26 +1,41 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Container, Form, FormControl, Navbar } from "react-bootstrap";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { fetchPhotosAsync, selectPhotos } from "./photosSlice";
 import styles from "./Photos.module.css";
+import ImageModalPopup from "./modelPopup";
 
 export function Photos() {
   const photos = useAppSelector(selectPhotos);
+  const [modalShow, setModalShow] = React.useState(false);
+  const [zoomedImage, setZoomedImage] = useState({});
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     dispatch(fetchPhotosAsync(1));
   }, [dispatch]);
 
-  console.log("The value of photos is", photos);
+  const handleOnImgClick = (e: any) => {
+    const clickedImgId = e.target.id;
+    const clickedImg = photos.find((item) => {
+      return item.id === Number(clickedImgId);
+    });
+    setModalShow(true);
+    setZoomedImage(clickedImg);
+  };
+
   const photosRendered = photos?.map((item: any) => {
     return (
       <div key={item.id} className={styles.imageElmtContainer}>
-        <img src={item.thumbnailUrl} alt={item?.title} />
+        <img
+          src={item.thumbnailUrl}
+          alt={item?.title}
+          id={item.id}
+          onClick={handleOnImgClick}
+        />
       </div>
     );
   });
-
 
   return (
     <div>
@@ -37,7 +52,12 @@ export function Photos() {
           </Form>
         </Container>
       </Navbar>
-      <div className={styles.imagesContainer} >{photosRendered}</div>
+      <ImageModalPopup
+        show={modalShow}
+        onHide={() => setModalShow(false)}
+        zoomedImage={zoomedImage}
+      />
+      <div className={styles.imagesContainer}>{photosRendered}</div>
     </div>
   );
 }
