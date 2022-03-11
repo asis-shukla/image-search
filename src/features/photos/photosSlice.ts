@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState } from '../../app/store';
-import { getRecentPhotos } from './photosAPI';
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { RootState } from "../../app/store";
+import { getRecentPhotos } from "./photosAPI";
 
 const API_KEY = "8c920bfa4628a647b79c9a9d4594dbe7";
 const API_SECRET = "9141f4123da2be92";
 const per_page = 24;
 
 export interface PhotosState {
-  status: 'idle' | 'loading' | 'failed';
+  status: "idle" | "loading" | "failed";
   photos: any;
 }
 
 const initialState: PhotosState = {
-  status: 'idle',
-  photos: {}
+  status: "idle",
+  photos: {page: 0, photo: []},
 };
 
 // The function below is called a thunk and allows us to perform async logic. It
@@ -24,16 +24,16 @@ const initialState: PhotosState = {
 // typically used to make async requests.
 
 export const fetchRecentPhotosAsync = createAsyncThunk(
-  'photos/fetchRecentPhotos',
-  async (page: number) => {
-    const response =  await getRecentPhotos(API_KEY, per_page, page);
+  "photos/fetchRecentPhotos",
+  async (page: number | undefined) => {
+    const response = await getRecentPhotos(API_KEY, per_page, page ? page : 1);
     // The value we return becomes the `fulfilled` action payload
     return response.data;
   }
 );
 
 export const photosSlice = createSlice({
-  name: 'photos',
+  name: "photos",
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
@@ -50,11 +50,15 @@ export const photosSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchRecentPhotosAsync.pending, (state) => {
-        state.status = 'loading';
+        state.status = "loading";
       })
       .addCase(fetchRecentPhotosAsync.fulfilled, (state, action) => {
-        state.status = 'idle';
-        state.photos = action.payload.photos;
+        const newPhotos = {
+          ...action.payload.photos,
+          photo: [...state.photos.photo, ...action.payload.photos.photo]
+        }
+        state.status = "idle";
+        state.photos = newPhotos
       });
   },
 });
@@ -68,6 +72,5 @@ export const selectPhotos = (state: RootState) => state.photos.photos;
 
 // We can also write thunks by hand, which may contain both sync and async logic.
 // Here's an example of conditionally dispatching actions based on current state.
-
 
 export default photosSlice.reducer;
