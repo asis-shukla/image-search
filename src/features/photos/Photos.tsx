@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Container, Form, FormControl, Navbar } from "react-bootstrap";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
-import { fetchPhotosAsync, selectPhotos } from "./photosSlice";
+import { fetchRecentPhotosAsync, selectPhotos } from "./photosSlice";
 import styles from "./Photos.module.css";
 import ImageModalPopup from "./modelPopup";
 
@@ -12,23 +12,27 @@ export function Photos() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(fetchPhotosAsync(1));
+    dispatch(fetchRecentPhotosAsync(1));
   }, [dispatch]);
+
+
+  console.log("photos is", photos);
 
   const handleOnImgClick = (e: any) => {
     const clickedImgId = e.target.id;
-    const clickedImg = photos.find((item) => {
-      return item.id === Number(clickedImgId);
+    const clickedImg = photos?.photo?.find((item:any) => {
+      return item.id === clickedImgId;
     });
     setModalShow(true);
     setZoomedImage(clickedImg);
   };
 
-  const photosRendered = photos?.map((item: any) => {
+  const photosRendered = photos?.photo?.map((item: any) => {
+    const thumbnailUrl = `https://live.staticflickr.com/${item.server}/${item.id}_${item.secret}_${"w"}.jpg`;
     return (
       <div key={item.id} className={styles.imageElmtContainer}>
         <img
-          src={item.thumbnailUrl}
+          src={thumbnailUrl}
           alt={item?.title}
           id={item.id}
           onClick={handleOnImgClick}

@@ -1,13 +1,19 @@
 import { Button, Modal } from "react-bootstrap";
+import Image from "react-bootstrap/Image";
 
 interface IImageModalPopup {
   show?: boolean;
   onHide?: any;
-  zoomedImage?:any;
+  zoomedImage?: any;
 }
 
 function ImageModalPopup(props: IImageModalPopup) {
-    const {zoomedImage} = props;
+  const { zoomedImage: item } = props;
+
+  const imageURL = `https://live.staticflickr.com/${item.server}/${item.id}_${
+    item.secret
+  }_${"c"}.jpg`;
+
   return (
     <Modal
       {...props}
@@ -17,11 +23,11 @@ function ImageModalPopup(props: IImageModalPopup) {
     >
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
-          {zoomedImage.title}
+          {item.title}
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <img src={zoomedImage.url} alt="full-pictur"/>
+        <Image fluid rounded src={imageURL} alt="full-pictur" />
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={props.onHide}>Close</Button>
