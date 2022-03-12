@@ -11,6 +11,7 @@ export function Photos() {
   const status = useAppSelector(selectStatus);
   const [modalShow, setModalShow] = React.useState(false);
   const [zoomedImage, setZoomedImage] = useState({});
+  const [inputQuery, setInputQuery] = useState("");
   const dispatch = useAppDispatch();
   
   useEffect(() => {
@@ -49,6 +50,13 @@ export function Photos() {
     );
   });
 
+  const handleOnChange = (e:any) => {
+    setInputQuery(e.target.value);
+  }
+  const handleSearch = () => {
+    // dispatch(fetchRecentPhotosAsync(photos?.page + 1));
+  }
+
   return (
     <div>
       <Navbar bg="dark" expand="lg" sticky="top">
@@ -59,8 +67,10 @@ export function Photos() {
               placeholder="Search"
               className="me-2"
               aria-label="Search"
+              value={inputQuery}
+              onChange={handleOnChange}
             />
-            <Button variant="outline-success">Search</Button>
+            <Button variant="outline-success" onClick={handleSearch}>Search</Button>
           </Form>
         </Container>
       </Navbar>
