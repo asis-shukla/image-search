@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Button, Container, Form, FormControl, Navbar, Spinner } from "react-bootstrap";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
-import { fetchRecentPhotosAsync, selectPhotos } from "./photosSlice";
+import { fetchRecentPhotosAsync, selectPhotos, selectStatus } from "./photosSlice";
 import styles from "./Photos.module.css";
 import ImageModalPopup from "./modelPopup";
 import InfiniteScroll from "react-infinite-scroll-component";
 
 export function Photos() {
   const photos = useAppSelector(selectPhotos);
+  const status = useAppSelector(selectStatus);
   const [modalShow, setModalShow] = React.useState(false);
   const [zoomedImage, setZoomedImage] = useState({});
   const dispatch = useAppDispatch();
-
+  
   useEffect(() => {
     dispatch(fetchRecentPhotosAsync(photos?.page + 1));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -50,7 +51,7 @@ export function Photos() {
 
   return (
     <div>
-      <Navbar bg="dark" expand="lg">
+      <Navbar bg="dark" expand="lg" sticky="top">
         <Container className={styles.contentCenter}>
           <Form className="d-flex">
             <FormControl
@@ -73,7 +74,7 @@ export function Photos() {
         dataLength={photos?.photo?.length} //This is important field to render the next data
         next={fetchData}
         hasMore={true}
-        loader={<Spinner animation={"border"}/>}
+        loader={null}
         endMessage={
           <p style={{ textAlign: "center" }}>
             <b>Yay! You have seen it all</b>
@@ -83,6 +84,7 @@ export function Photos() {
       >
         {photosRendered}
       </InfiniteScroll>
+      {status === "loading" ? <Spinner animation={"border"}/> : null}
     </div>
   );
 }
