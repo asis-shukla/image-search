@@ -25,8 +25,8 @@ const initialState: PhotosState = {
 
 export const fetchRecentPhotosAsync = createAsyncThunk(
   "photos/fetchRecentPhotos",
-  async (page: number | undefined) => {
-    const response = await getRecentPhotos(API_KEY, per_page, page ? page : 1);
+  async (page: number) => {
+    const response = await getRecentPhotos(API_KEY, per_page, page);
     // The value we return becomes the `fulfilled` action payload
     return response.data;
   }
@@ -53,9 +53,12 @@ export const photosSlice = createSlice({
         state.status = "loading";
       })
       .addCase(fetchRecentPhotosAsync.fulfilled, (state, action) => {
+        const allPhoto = [...state.photos.photo, ...action.payload.photos.photo]
+        const ids = allPhoto?.map(o => o.id);
+        const uniquePhoto = allPhoto.filter(({id}, index) => !ids.includes(id, index + 1))
         const newPhotos = {
           ...action.payload.photos,
-          photo: [...state.photos.photo, ...action.payload.photos.photo]
+          photo: uniquePhoto
         }
         state.status = "idle";
         state.photos = newPhotos

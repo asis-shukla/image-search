@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Container, Form, FormControl, Navbar } from "react-bootstrap";
+import { Button, Container, Form, FormControl, Navbar, Spinner } from "react-bootstrap";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { fetchRecentPhotosAsync, selectPhotos } from "./photosSlice";
 import styles from "./Photos.module.css";
@@ -14,7 +14,7 @@ export function Photos() {
 
   useEffect(() => {
     dispatch(fetchRecentPhotosAsync(photos?.page + 1));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   const fetchData = () => {
@@ -68,21 +68,21 @@ export function Photos() {
         onHide={() => setModalShow(false)}
         zoomedImage={zoomedImage}
       />
-      <div className={styles.imagesContainer}>
-        <InfiniteScroll
-          dataLength={100000} //This is important field to render the next data
-          next={fetchData}
-          hasMore={true}
-          loader={<h4>Loading...</h4>}
-          endMessage={
-            <p style={{ textAlign: "center" }}>
-              <b>Yay! You have seen it all</b>
-            </p>
-          }
-        >
-          <div className={styles.imagesContainer}>{photosRendered}</div>
-        </InfiniteScroll>
-      </div>
+
+      <InfiniteScroll
+        dataLength={photos?.photo?.length} //This is important field to render the next data
+        next={fetchData}
+        hasMore={true}
+        loader={<Spinner animation={"border"}/>}
+        endMessage={
+          <p style={{ textAlign: "center" }}>
+            <b>Yay! You have seen it all</b>
+          </p>
+        }
+        className={styles.imagesContainer}
+      >
+        {photosRendered}
+      </InfiniteScroll>
     </div>
   );
 }
