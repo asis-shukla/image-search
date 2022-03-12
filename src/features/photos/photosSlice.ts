@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
-import { getRecentPhotos } from "./photosAPI";
+import { getRecentPhotos, getPhotoBySearchText } from "./photosAPI";
 
 const API_KEY = "8c920bfa4628a647b79c9a9d4594dbe7";
 const API_SECRET = "9141f4123da2be92";
@@ -14,7 +14,7 @@ export interface PhotosState {
 
 const initialState: PhotosState = {
   status: "idle",
-  photos: {page: 0, photo: []},
+  photos: { page: 0, photo: [] },
 };
 
 // The function below is called a thunk and allows us to perform async logic. It
@@ -27,7 +27,20 @@ export const fetchRecentPhotosAsync = createAsyncThunk(
   "photos/fetchRecentPhotos",
   async (page: number) => {
     const response = await getRecentPhotos(API_KEY, per_page, page);
-    // The value we return becomes the `fulfilled` action payload
+    return response.data;
+  }
+);
+
+export const fetchPhotoBySearchText = createAsyncThunk(
+  "photos/fetchSearchedPhotos",
+  async (action: any) => {
+    const { page, searchText } = action;
+    const response = await getPhotoBySearchText(
+      API_KEY,
+      per_page,
+      page,
+      searchText
+    );
     return response.data;
   }
 );
@@ -35,14 +48,9 @@ export const fetchRecentPhotosAsync = createAsyncThunk(
 export const photosSlice = createSlice({
   name: "photos",
   initialState,
-  // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
-    increment: (state) => {
-      // Redux Toolkit allows us to write "mutating" logic in reducers. It
-      // doesn't actually mutate the state because it uses the Immer library,
-      // which detects changes to a "draft state" and produces a brand new
-      // immutable state based off those changes
-      // state.value += 1;
+    someAction: (state, action) => {
+      // Modify state here
     },
   },
   // The `extraReducers` field lets the slice handle actions defined elsewhere,
@@ -53,20 +61,44 @@ export const photosSlice = createSlice({
         state.status = "loading";
       })
       .addCase(fetchRecentPhotosAsync.fulfilled, (state, action) => {
-        const allPhoto = [...state.photos.photo, ...action.payload.photos.photo]
-        const ids = allPhoto?.map(o => o.id);
-        const uniquePhoto = allPhoto.filter(({id}, index) => !ids.includes(id, index + 1))
+        const allPhoto = [
+          ...state.photos.photo,
+          ...action.payload.photos.photo,
+        ];
+        const ids = allPhoto?.map((o) => o.id);
+        const uniquePhoto = allPhoto.filter(
+          ({ id }, index) => !ids.includes(id, index + 1)
+        );
         const newPhotos = {
           ...action.payload.photos,
-          photo: uniquePhoto
-        }
+          photo: uniquePhoto,
+        };
         state.status = "idle";
-        state.photos = newPhotos
+        state.photos = newPhotos;
+      })
+      .addCase(fetchPhotoBySearchText.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchPhotoBySearchText.fulfilled, (state, action) => {
+        // const allPhoto = [...state.photos.photo, ...action.payload.photos]
+        // const ids = allPhoto?.map(o => o.id);
+        // const uniquePhoto = allPhoto.filter(({id}, index) => !ids.includes(id, index + 1))
+        // const newPhotos = {
+        //   ...action.payload.photos,
+        //   photo: uniquePhoto
+        // }
+        if (action.payload.stat === "fail") {
+          state.status = "failed";
+          state.photos = { page: 0, photo: [] };
+        } else {
+          state.status = "idle";
+          state.photos = action.payload.photos;
+        }
       });
   },
 });
 
-export const { increment } = photosSlice.actions;
+// export const { someAction } = photosSlice.actions;
 
 // The function below is called a selector and allows us to select a value from
 // the state. Selectors can also be defined inline where they're used instead of

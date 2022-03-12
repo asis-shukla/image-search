@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Button, Container, Form, FormControl, Navbar, Spinner } from "react-bootstrap";
+import { Container, Form, FormControl, Navbar, Spinner } from "react-bootstrap";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
-import { fetchRecentPhotosAsync, selectPhotos, selectStatus } from "./photosSlice";
+import { fetchRecentPhotosAsync, selectPhotos, selectStatus, fetchPhotoBySearchText } from "./photosSlice";
 import styles from "./Photos.module.css";
 import ImageModalPopup from "./modelPopup";
 import InfiniteScroll from "react-infinite-scroll-component";
 
 export function Photos() {
   const photos = useAppSelector(selectPhotos);
+  const {photo, page} = photos;
   const status = useAppSelector(selectStatus);
   const [modalShow, setModalShow] = React.useState(false);
   const [zoomedImage, setZoomedImage] = useState({});
@@ -20,7 +21,12 @@ export function Photos() {
   }, [dispatch]);
 
   const fetchData = () => {
-    dispatch(fetchRecentPhotosAsync(photos?.page + 1));
+    if (inputQuery.length > 0) {
+      dispatch(fetchPhotoBySearchText({searchText: inputQuery, page : page + 1}));
+    } else {
+      dispatch(fetchRecentPhotosAsync(page + 1));  
+    }
+    
   };
 
   console.log("photos is", photos);
@@ -34,7 +40,7 @@ export function Photos() {
     setZoomedImage(clickedImg);
   };
 
-  const photosRendered = photos?.photo?.map((item: any) => {
+  const photosRendered = photo?.map((item: any) => {
     const thumbnailUrl = `https://live.staticflickr.com/${item.server}/${
       item.id
     }_${item.secret}_${"w"}.jpg`;
@@ -51,11 +57,12 @@ export function Photos() {
   });
 
   const handleOnChange = (e:any) => {
-    setInputQuery(e.target.value);
+    const searchText = e.target.value;
+    setInputQuery(searchText);
+    dispatch(fetchPhotoBySearchText({searchText: searchText, page : 1}));
   }
-  const handleSearch = () => {
-    // dispatch(fetchRecentPhotosAsync(photos?.page + 1));
-  }
+
+  console.log("status is sadsad", status);
 
   return (
     <div>
@@ -70,7 +77,6 @@ export function Photos() {
               value={inputQuery}
               onChange={handleOnChange}
             />
-            <Button variant="outline-success" onClick={handleSearch}>Search</Button>
           </Form>
         </Container>
       </Navbar>
@@ -81,7 +87,7 @@ export function Photos() {
       />
 
       <InfiniteScroll
-        dataLength={photos?.photo?.length} //This is important field to render the next data
+        dataLength={photo?.length} //This is important field to render the next data
         next={fetchData}
         hasMore={true}
         loader={null}
