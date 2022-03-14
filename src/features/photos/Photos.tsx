@@ -14,7 +14,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 
 export function Photos() {
   const photos = useAppSelector(selectPhotos);
-  const { photo, page } = photos;
+  const { photo, page, pages } = photos;
   const status = useAppSelector(selectStatus);
   const [modalShow, setModalShow] = useState(false);
   const [zoomedImage, setZoomedImage] = useState({});
@@ -35,8 +35,6 @@ export function Photos() {
       dispatch(fetchRecentPhotosAsync(page + 1));
     }
   };
-
-  console.log("photos is", photos);
 
   const handleOnImgClick = (e: any) => {
     const clickedImgId = e.target.id;
@@ -69,8 +67,6 @@ export function Photos() {
     dispatch(fetchPhotoBySearchText({ searchText: searchText, page: 1 }));
   };
 
-  console.log("status is sadsad", status);
-
   return (
     <div>
       <Navbar bg="dark" expand="lg" sticky="top">
@@ -96,18 +92,23 @@ export function Photos() {
       <InfiniteScroll
         dataLength={photo?.length}
         next={fetchData}
-        hasMore={true}
+        hasMore={!(pages === page)}
         loader={null}
-        endMessage={
-          <p style={{ textAlign: "center" }}>
-            <b>Yay! You have seen it all</b>
-          </p>
-        }
+        endMessage={null}
         className={styles.imagesContainer}
       >
         {photosRendered}
       </InfiniteScroll>
-      {status === photosApiStatus.LOADING ? <Spinner animation={"border"} /> : null}
+      {status === photosApiStatus.LOADING ? (
+        <Spinner animation={"border"} />
+      ) : null}
+      {pages === page ? (
+        <div>
+          <p style={{ textAlign: "center" }}>
+            <b>Yay! You have seen it all</b>
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
