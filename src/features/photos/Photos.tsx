@@ -1,5 +1,12 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Container, Form, FormControl, Navbar, Spinner } from "react-bootstrap";
+import {
+  Button,
+  Container,
+  Form,
+  FormControl,
+  Navbar,
+  Spinner,
+} from "react-bootstrap";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import {
   fetchRecentPhotosAsync,
@@ -67,6 +74,18 @@ export function Photos() {
 
   function handleDebounceFn(inputQuery: string) {
     if (inputQuery.length > 0) {
+      let storedSearches = [];
+      const existingItems = localStorage.getItem("imgSearches");
+      if (existingItems) {
+        storedSearches = JSON.parse(existingItems);
+      }
+      if (!storedSearches.includes(inputQuery)) {
+        localStorage.setItem(
+          "imgSearches",
+          JSON.stringify([inputQuery, ...storedSearches])
+        );
+      }
+
       dispatch(fetchPhotoBySearchText({ searchText: inputQuery, page: 1 }));
     }
   }
@@ -75,6 +94,46 @@ export function Photos() {
     const searchText = e?.target?.value;
     setInputQuery(searchText);
     debounceFn(e.target.value);
+  };
+
+  const handleSuggestedItemClick = (event: any) => {
+    const itmeText = event.target.outerText;
+    setInputQuery(itmeText);
+    debounceFn(itmeText);
+  };
+
+  const renderSuggestions = () => {
+    const existingItems = localStorage.getItem("imgSearches");
+    let storedSearches = [];
+    if (existingItems) {
+      storedSearches = JSON.parse(existingItems);
+    }
+    const suggestions = storedSearches;
+    const renderedSuggestions = suggestions.map((item: string) => {
+      return (
+        <>
+          <Button variant="link" onClick={handleSuggestedItemClick}>
+            {item}
+          </Button>
+          <hr />
+        </>
+      );
+    });
+    return (
+      <div className={styles.suggestions}>
+        {renderedSuggestions}
+        <Button
+          variant="danger"
+          onClick={() => {
+            localStorage.clear();
+            setInputQuery("");
+          }}
+          className={styles.clearButton}
+        >
+          Clear
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -88,11 +147,13 @@ export function Photos() {
               className="me-2"
               aria-label="Search"
               value={inputQuery}
+              autoComplete={"good"}
               onChange={handleOnChange}
             />
           </Form>
         </Container>
       </Navbar>
+      {renderSuggestions()}
       <ImageModalPopup
         show={modalShow}
         onHide={() => setModalShow(false)}

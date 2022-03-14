@@ -4,17 +4,32 @@
   justify-content: center;
 }
 
-.imagesContainer{
+.imagesContainer {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   margin: 14px;
 }
 
-.imageElmtContainer{
+.imageElmtContainer {
   padding: 14px;
 }
 
-.contentCenter{
+.contentCenter {
   justify-content: center !important;
+}
+
+.suggestions {
+  border: 1px solid gray;
+  width: 400px;
+  margin: auto;
+}
+
+.clearButton {
+  width: fit-content;
+  align-self: flex-end;
+}
+
+hr {
+  margin: 0px;
 }
