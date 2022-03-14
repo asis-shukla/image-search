@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Container, Form, FormControl, Navbar, Spinner } from "react-bootstrap";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import {
@@ -11,6 +11,7 @@ import {
 import styles from "./Photos.module.css";
 import ImageModalPopup from "./modelPopup";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { debounce } from "lodash";
 
 export function Photos() {
   const photos = useAppSelector(selectPhotos);
@@ -61,10 +62,19 @@ export function Photos() {
     );
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debounceFn = useCallback(debounce(handleDebounceFn, 800), []);
+
+  function handleDebounceFn(inputQuery: string) {
+    if (inputQuery.length > 0) {
+      dispatch(fetchPhotoBySearchText({ searchText: inputQuery, page: 1 }));
+    }
+  }
+
   const handleOnChange = (e: any) => {
     const searchText = e?.target?.value;
     setInputQuery(searchText);
-    dispatch(fetchPhotoBySearchText({ searchText: searchText, page: 1 }));
+    debounceFn(e.target.value);
   };
 
   return (

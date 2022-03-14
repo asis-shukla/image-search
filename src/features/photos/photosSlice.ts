@@ -89,10 +89,18 @@ export const photosSlice = createSlice({
           state.status = photosApiStatus.FAILED;
           state.photos = { page: 0, photo: [] };
         } else {
-          state.photos = {
-            ...action.payload.photos,
-            photo: getUniquePhoto(state, action),
-          };
+          if (action.payload.photos.page === 1) {
+            state.photos = {
+              ...action.payload.photos,
+              photo: action.payload.photos.photo
+            };
+          } else {
+            state.photos = {
+              ...action.payload.photos,
+              photo: getUniquePhoto(state, action),
+            };
+          }
+          
           state.status = photosApiStatus.IDLE;
         }
       });
