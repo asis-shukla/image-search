@@ -1,4 +1,3 @@
-// A mock function to mimic making an async request for data
 import axios from "axios";
 const BASE_URL = "https://www.flickr.com/services/rest";
 

@@ -7,21 +7,21 @@ const API_KEY = "8c920bfa4628a647b79c9a9d4594dbe7";
 const API_SECRET = "9141f4123da2be92";
 const per_page = 24;
 
+export enum photosApiStatus {
+  IDLE = "IDLE",
+  LOADING = "LOADING",
+  FAILED = "FAILED",
+}
+
 export interface PhotosState {
-  status: "idle" | "loading" | "failed";
+  status: photosApiStatus;
   photos: any;
 }
 
 const initialState: PhotosState = {
-  status: "idle",
+  status: photosApiStatus.IDLE,
   photos: { page: 0, photo: [] },
 };
-
-// The function below is called a thunk and allows us to perform async logic. It
-// can be dispatched like a regular action: `dispatch(incrementAsync(10))`. This
-// will call the thunk with the `dispatch` function as the first argument. Async
-// code can then be executed and other actions can be dispatched. Thunks are
-// typically used to make async requests.
 
 export const fetchRecentPhotosAsync = createAsyncThunk(
   "photos/fetchRecentPhotos",
@@ -45,6 +45,15 @@ export const fetchPhotoBySearchText = createAsyncThunk(
   }
 );
 
+const getUniquePhoto = (state: any, action: any) => {
+  const allPhoto = [...state.photos.photo, ...action.payload.photos.photo];
+  const ids = allPhoto?.map((o) => o.id);
+  const uniquePhoto = allPhoto.filter(
+    ({ id }, index) => !ids.includes(id, index + 1)
+  );
+  return uniquePhoto;
+};
+
 export const photosSlice = createSlice({
   name: "photos",
   initialState,
@@ -58,41 +67,33 @@ export const photosSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchRecentPhotosAsync.pending, (state) => {
-        state.status = "loading";
+        state.status = photosApiStatus.LOADING;
       })
       .addCase(fetchRecentPhotosAsync.fulfilled, (state, action) => {
-        const allPhoto = [
-          ...state.photos.photo,
-          ...action.payload.photos.photo,
-        ];
-        const ids = allPhoto?.map((o) => o.id);
-        const uniquePhoto = allPhoto.filter(
-          ({ id }, index) => !ids.includes(id, index + 1)
-        );
-        const newPhotos = {
-          ...action.payload.photos,
-          photo: uniquePhoto,
-        };
-        state.status = "idle";
-        state.photos = newPhotos;
-      })
-      .addCase(fetchPhotoBySearchText.pending, (state) => {
-        state.status = "loading";
-      })
-      .addCase(fetchPhotoBySearchText.fulfilled, (state, action) => {
-        // const allPhoto = [...state.photos.photo, ...action.payload.photos]
-        // const ids = allPhoto?.map(o => o.id);
-        // const uniquePhoto = allPhoto.filter(({id}, index) => !ids.includes(id, index + 1))
-        // const newPhotos = {
-        //   ...action.payload.photos,
-        //   photo: uniquePhoto
-        // }
         if (action.payload.stat === "fail") {
-          state.status = "failed";
+          state.status = photosApiStatus.FAILED;
           state.photos = { page: 0, photo: [] };
         } else {
-          state.status = "idle";
-          state.photos = action.payload.photos;
+          state.photos = {
+            ...action.payload.photos,
+            photo: getUniquePhoto(state, action),
+          };
+          state.status = photosApiStatus.IDLE;
+        }
+      })
+      .addCase(fetchPhotoBySearchText.pending, (state) => {
+        state.status = photosApiStatus.LOADING;
+      })
+      .addCase(fetchPhotoBySearchText.fulfilled, (state, action) => {
+        if (action.payload.stat === "fail") {
+          state.status = photosApiStatus.FAILED;
+          state.photos = { page: 0, photo: [] };
+        } else {
+          state.photos = {
+            ...action.payload.photos,
+            photo: getUniquePhoto(state, action),
+          };
+          state.status = photosApiStatus.IDLE;
         }
       });
   },
@@ -100,13 +101,7 @@ export const photosSlice = createSlice({
 
 // export const { someAction } = photosSlice.actions;
 
-// The function below is called a selector and allows us to select a value from
-// the state. Selectors can also be defined inline where they're used instead of
-// in the slice file. For example: `useSelector((state: RootState) => state.counter.value)`
 export const selectPhotos = (state: RootState) => state.photos.photos;
 export const selectStatus = (state: RootState) => state.photos.status;
-
-// We can also write thunks by hand, which may contain both sync and async logic.
-// Here's an example of conditionally dispatching actions based on current state.
 
 export default photosSlice.reducer;

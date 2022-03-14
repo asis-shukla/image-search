@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { Container, Form, FormControl, Navbar, Spinner } from "react-bootstrap";
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
-import { fetchRecentPhotosAsync, selectPhotos, selectStatus, fetchPhotoBySearchText } from "./photosSlice";
+import {
+  fetchRecentPhotosAsync,
+  selectPhotos,
+  selectStatus,
+  fetchPhotoBySearchText,
+  photosApiStatus,
+} from "./photosSlice";
 import styles from "./Photos.module.css";
 import ImageModalPopup from "./modelPopup";
 import InfiniteScroll from "react-infinite-scroll-component";
 
 export function Photos() {
   const photos = useAppSelector(selectPhotos);
-  const {photo, page} = photos;
+  const { photo, page } = photos;
   const status = useAppSelector(selectStatus);
-  const [modalShow, setModalShow] = React.useState(false);
+  const [modalShow, setModalShow] = useState(false);
   const [zoomedImage, setZoomedImage] = useState({});
   const [inputQuery, setInputQuery] = useState("");
   const dispatch = useAppDispatch();
-  
+
   useEffect(() => {
     dispatch(fetchRecentPhotosAsync(photos?.page + 1));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -22,11 +28,12 @@ export function Photos() {
 
   const fetchData = () => {
     if (inputQuery.length > 0) {
-      dispatch(fetchPhotoBySearchText({searchText: inputQuery, page : page + 1}));
+      dispatch(
+        fetchPhotoBySearchText({ searchText: inputQuery, page: page + 1 })
+      );
     } else {
-      dispatch(fetchRecentPhotosAsync(page + 1));  
+      dispatch(fetchRecentPhotosAsync(page + 1));
     }
-    
   };
 
   console.log("photos is", photos);
@@ -48,7 +55,7 @@ export function Photos() {
       <div key={item.id} className={styles.imageElmtContainer}>
         <img
           src={thumbnailUrl}
-          alt={item?.title}
+          alt={item.title}
           id={item.id}
           onClick={handleOnImgClick}
         />
@@ -56,11 +63,11 @@ export function Photos() {
     );
   });
 
-  const handleOnChange = (e:any) => {
-    const searchText = e.target.value;
+  const handleOnChange = (e: any) => {
+    const searchText = e?.target?.value;
     setInputQuery(searchText);
-    dispatch(fetchPhotoBySearchText({searchText: searchText, page : 1}));
-  }
+    dispatch(fetchPhotoBySearchText({ searchText: searchText, page: 1 }));
+  };
 
   console.log("status is sadsad", status);
 
@@ -87,7 +94,7 @@ export function Photos() {
       />
 
       <InfiniteScroll
-        dataLength={photo?.length} //This is important field to render the next data
+        dataLength={photo?.length}
         next={fetchData}
         hasMore={true}
         loader={null}
@@ -100,7 +107,7 @@ export function Photos() {
       >
         {photosRendered}
       </InfiniteScroll>
-      {status === "loading" ? <Spinner animation={"border"}/> : null}
+      {status === photosApiStatus.LOADING ? <Spinner animation={"border"} /> : null}
     </div>
   );
 }
