@@ -26,6 +26,7 @@ export function Photos() {
   const status = useAppSelector(selectStatus);
   const [modalShow, setModalShow] = useState(false);
   const [zoomedImage, setZoomedImage] = useState({});
+  const [showSuggestionBox, setShowSuggestionBox] = useState(false);
   const [inputQuery, setInputQuery] = useState("");
   const dispatch = useAppDispatch();
 
@@ -136,6 +137,14 @@ export function Photos() {
     );
   };
 
+  const handleOnFocus = (e: any) => {
+    setShowSuggestionBox(true);
+  };
+
+  const handleOnBlur = (e: any) => {
+    setShowSuggestionBox(false);
+  };
+
   return (
     <div>
       <Navbar bg="dark" expand="lg" sticky="top">
@@ -149,11 +158,13 @@ export function Photos() {
               value={inputQuery}
               autoComplete={"good"}
               onChange={handleOnChange}
+              onFocus={handleOnFocus}
+              onBlur={handleOnBlur}
             />
           </Form>
         </Container>
       </Navbar>
-      {renderSuggestions()}
+      {showSuggestionBox && renderSuggestions()}
       <ImageModalPopup
         show={modalShow}
         onHide={() => setModalShow(false)}
